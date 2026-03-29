@@ -48,6 +48,9 @@ const i18n = {
         trendGood: "Dans le budget",
         trendWarning: "Léger dépassement",
         trendDanger: "Hors budget",
+        exportBtn: "Exporter",
+        exportCsv: "Format Excel (.csv)",
+        exportPdf: "Format Rapport (.pdf)"
     },
     en: {
         subtitle: "Budget Management",
@@ -96,6 +99,9 @@ const i18n = {
         trendGood: "On budget",
         trendWarning: "Slight overspend",
         trendDanger: "Over budget",
+        exportBtn: "Export",
+        exportCsv: "Excel Format (.csv)",
+        exportPdf: "Report Format (.pdf)"
     },
     es: {
         subtitle: "Gestión de Presupuesto",
@@ -144,6 +150,9 @@ const i18n = {
         trendGood: "En presupuesto",
         trendWarning: "Ligero exceso",
         trendDanger: "Fuera de presupuesto",
+        exportBtn: "Exportar",
+        exportCsv: "Formato Excel (.csv)",
+        exportPdf: "Formato Informe (.pdf)"
     },
     it: {
         subtitle: "Gestione Budget",
@@ -192,6 +201,9 @@ const i18n = {
         trendGood: "Nel budget",
         trendWarning: "Leggero superamento",
         trendDanger: "Fuori budget",
+        exportBtn: "Esporta",
+        exportCsv: "Formato Excel (.csv)",
+        exportPdf: "Formato Report (.pdf)"
     },
     ml: {
         subtitle: "ബജറ്റ് മാനേജ്മെന്റ്",
@@ -240,6 +252,9 @@ const i18n = {
         trendGood: "ബജറ്റിൽ",
         trendWarning: "ചെറിയ അധികച്ചെലവ്",
         trendDanger: "ബജറ്റിന് പുറത്ത്",
+        exportBtn: "കയറ്റുമതി ചെയ്യുക",
+        exportCsv: "എക്സൽ ഫോർമാറ്റ് (.csv)",
+        exportPdf: "റിപ്പോർട്ട് ഫോർമാറ്റ് (.pdf)"
     }
 };
 

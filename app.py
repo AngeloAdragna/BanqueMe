@@ -1,7 +1,9 @@
 import sys
 import subprocess
 import sqlite3
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash # Ajout de flash ici
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response
+import csv
+import io
 
 app = Flask(__name__)
 # OBLIGATOIRE : Flask a besoin d'une clé secrète pour sécuriser les messages (sessions)
@@ -186,6 +188,42 @@ def supprimer_categorie(id_cat, sous_cat):
         
     conn.close()
     return redirect(url_for('index'))
+
+@app.route('/export/csv')
+def export_csv():
+    f_annee = request.args.get('annee', '2025')
+    f_mois = request.args.get('mois', '')
+    
+    conn = get_db_connection()
+    query = "SELECT jour_mois, annee, sous_categorie, montant, commentaire FROM detaillee WHERE sous_categorie != 'À classer'"
+    params = []
+    
+    if f_annee:
+        query += " AND annee = ?"
+        params.append(f_annee)
+    if f_mois:
+        query += " AND jour_mois LIKE ?"
+        params.append(f"%{f_mois}%")
+        
+    query += " ORDER BY id_transaction DESC"
+    transactions = conn.execute(query, params).fetchall()
+    conn.close()
+
+    # Création du fichier CSV en mémoire
+    si = io.StringIO()
+    # Séparateur point-virgule pour une ouverture parfaite dans le Excel français
+    cw = csv.writer(si, delimiter=';') 
+    cw.writerow(['Jour/Mois', 'Année', 'Catégorie', 'Montant (€)', 'Description'])
+    
+    for t in transactions:
+        cw.writerow([t['jour_mois'], t['annee'], t['sous_categorie'], t['montant'], t['commentaire']])
+
+    # Préparation de la réponse pour le téléchargement
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=export_budget.csv"
+    output.headers["Content-type"] = "text/csv; charset=utf-8-sig" # utf-8-sig pour les accents sur Excel
+    
+    return output
 
 if __name__ == '__main__':
     app.run(debug=True)

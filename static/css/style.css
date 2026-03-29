@@ -1,0 +1,336 @@
+:root {
+  --primary: #9b1c1c; /* Rouge profond / Bordeaux */
+  --primary-dark: #771515;
+  --danger: #dc2626;
+  --success: #166534;
+  --bg-body: #f3f0ea; /* Gris-crème chaud */
+  --surface: #fdfcfb; /* Blanc cassé pour les cartes */
+  --text-main: #292524; /* Gris très foncé */
+  --text-muted: #78716c;
+  --border-soft: #e7e5df;
+}
+
+body {
+  background-color: var(--bg-body);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  color: var(--text-main);
+}
+
+/* Branding Éditorial */
+.brand-title {
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 2.8rem;
+  letter-spacing: -0.5px;
+}
+
+/* Navigation */
+.nav-pills {
+  background: var(--border-soft);
+  padding: 6px !important;
+  border-radius: 50px;
+}
+.nav-pills .nav-link {
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.nav-pills .nav-link:hover {
+  color: var(--primary);
+}
+.nav-pills .nav-link.active {
+  background: var(--primary);
+  box-shadow: 0 4px 10px rgba(155, 28, 28, 0.2);
+  color: white !important;
+}
+
+/* Cartes et Composants */
+.card {
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.04);
+  background: var(--surface);
+}
+
+.btn-custom {
+  background-color: var(--text-muted);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+.btn-custom:hover {
+  background-color: var(--primary);
+  color: white;
+}
+/* Gérer l'état de chargement du bouton proprement */
+.btn-custom.disabled {
+  opacity: 1 !important;
+  background-color: var(--primary) !important;
+  color: var(--surface) !important;
+  box-shadow: none !important;
+  cursor: wait !important;
+  transform: translateY(0);
+}
+
+/* Drag & Drop */
+.transaction-card {
+  cursor: grab;
+  border-left: 4px solid var(--primary);
+  transition: all 0.2s ease;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.transaction-card:hover {
+  transform: translateX(4px);
+  border-color: var(--primary-dark);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05) !important;
+}
+.transaction-card:active {
+  cursor: grabbing;
+}
+
+.dropzone {
+  min-height: 90px;
+  border: 2px dashed #d6d3ce;
+  border-radius: 12px;
+  background: #f8f7f4;
+  transition: all 0.3s ease;
+}
+.dropzone.dragover {
+  background-color: #fce8e8;
+  border-color: var(--primary);
+  transform: scale(1.02);
+}
+
+/* Progress bars & Inputs */
+.progress {
+  height: 8px;
+  border-radius: 10px;
+  background-color: var(--border-soft);
+}
+.progress-bar {
+  background-color: var(--text-muted);
+}
+.progress-bar.bg-danger {
+  background-color: var(--primary) !important;
+}
+.progress-bar.bg-success {
+  background-color: var(--text-main) !important;
+}
+
+.form-control,
+.form-select {
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  background-color: #f8f7f4;
+  padding: 10px 15px;
+}
+.form-control:focus,
+.form-select:focus {
+  box-shadow: 0 0 0 3px rgba(155, 28, 28, 0.1);
+  border-color: var(--primary);
+}
+.badge-count {
+  background-color: var(--surface);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+.nav-link.active .badge-count {
+  background-color: white;
+  color: var(--primary);
+}
+
+/* Ajout spécifique pour les conteneurs de graphiques */
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+/* Notification Éditoriale (Toast) */
+.editorial-toast {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  min-width: 320px;
+  background-color: var(--surface);
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: slideDownFade 4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+.editorial-toast.success {
+  border-left: 4px solid var(--success);
+}
+.editorial-toast.danger {
+  border-left: 4px solid var(--danger);
+}
+
+@keyframes slideDownFade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  90% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+    visibility: hidden;
+  }
+}
+/* --- COLONNE COLLANTE POUR LE TRI --- */
+.sticky-column {
+  position: sticky;
+  top: 20px; /* Espace avec le haut de l'écran */
+  max-height: calc(
+    100vh - 40px
+  ); /* Prend la hauteur de l'écran moins un peu de marge */
+  overflow-y: auto; /* Permet de scroller les virements indépendamment */
+  padding-right: 10px; /* Évite que la barre de scroll colle au texte */
+}
+
+/* Personnalisation de la barre de défilement pour qu'elle reste élégante */
+.sticky-column::-webkit-scrollbar {
+  width: 6px;
+}
+.sticky-column::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sticky-column::-webkit-scrollbar-thumb {
+  background-color: var(--border-soft);
+  border-radius: 10px;
+}
+.sticky-column::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+/* --- STYLE PREMIUM POUR L'EXPORT PDF --- */
+@media print {
+  /* 1. Forcer le navigateur à imprimer les couleurs de fond et les bordures */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 2. Format de la page (A4 standard) */
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm;
+  }
+
+  body {
+    background-color: white !important;
+    font-size: 11pt !important;
+    color: black !important;
+  }
+
+  /* 3. Masquer l'interface web (boutons, filtres, onglets, toasts) */
+  .nav-pills,
+  .btn,
+  form,
+  .dropdown,
+  .editorial-toast,
+  #tri,
+  #manuel {
+    display: none !important;
+  }
+
+  /* 4. En-tête du rapport centré et propre */
+  .d-flex.justify-content-between.align-items-center.mb-5 {
+    justify-content: center !important;
+    text-align: center !important;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 15px !important;
+    margin-bottom: 30px !important;
+    display: block !important;
+  }
+  .brand-title {
+    font-size: 28pt !important;
+    margin-bottom: 5px !important;
+  }
+
+  /* 5. Afficher les onglets utiles les uns sous les autres comme des chapitres */
+  .tab-content > .tab-pane {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    margin-bottom: 40px !important;
+    page-break-inside: avoid; /* Évite de couper un bloc au milieu */
+  }
+
+  /* 6. Nettoyage des cartes (plus d'ombre, bordure fine) */
+  .card {
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 20px !important;
+  }
+
+  /* 7. Aligner les 3 cartes KPI en haut des stats */
+  #stats .row.g-3.mb-4 {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+  }
+  #stats .col-md-4 {
+    width: 32% !important;
+    flex: 0 0 32% !important;
+  }
+
+  /* 8. Empiler les graphiques pour qu'ils soient grands et lisibles sur A4 */
+  .col-md-5,
+  .col-md-7,
+  .col-md-8 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+  .row.g-4 {
+    display: block !important;
+  } /* Désactive la grille Bootstrap pour les graphes */
+
+  /* 9. Adapter la taille des graphiques pour le papier */
+  .chart-container {
+    height: 280px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid; /* Jamais coupé entre deux pages ! */
+  }
+
+  /* 10. Tableaux plus denses pour économiser l'espace */
+  .table th {
+    background-color: #f8f7f4 !important;
+    border-bottom: 2px solid #ccc !important;
+  }
+  .table td,
+  .table th {
+    padding: 6px 8px !important;
+    font-size: 10pt !important;
+  }
+  .progress {
+    border: 1px solid #ccc !important;
+  }
+}
