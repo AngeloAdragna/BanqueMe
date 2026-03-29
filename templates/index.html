@@ -3,76 +3,314 @@
 <head>
     <meta charset="UTF-8" />
     <title>BanqueMe - Pilotage Budget</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        :root { --primary: #2c3e50; --danger: #e74c3c; --success: #27ae60; }
-        body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
-        .nav-pills .nav-link.active { background-color: var(--primary); }
-        .card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .transaction-card { cursor: grab; border-left: 5px solid var(--danger); transition: 0.2s; }
-        .transaction-card:hover { transform: scale(1.02); }
-        .dropzone { min-height: 90px; border: 2px dashed #cbd5e0; border-radius: 12px; background: #fff; transition: 0.3s; }
-        .dropzone.dragover { background-color: #d1e7dd; border-color: var(--success); }
-        .progress { height: 8px; border-radius: 10px; }
-        /* prettier-ignore */
+        :root { 
+            --primary: #9b1c1c;       /* Rouge profond / Bordeaux */
+            --primary-dark: #771515;
+            --danger: #dc2626; 
+            --success: #166534; 
+            --bg-body: #f3f0ea;       /* Gris-crème chaud */
+            --surface: #fdfcfb;       /* Blanc cassé pour les cartes */
+            --text-main: #292524;     /* Gris très foncé */
+            --text-muted: #78716c;
+            --border-soft: #e7e5df;
+        }
+        
+        body { 
+            background-color: var(--bg-body); 
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            color: var(--text-main);
+        }
+
+        /* Branding Éditorial */
+        .brand-title {
+            font-family: Georgia, "Times New Roman", Times, serif;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 2.8rem;
+            letter-spacing: -0.5px;
+        }
+
+        /* Navigation */
+        .nav-pills {
+            background: var(--border-soft);
+            padding: 6px !important;
+            border-radius: 50px;
+        }
+        .nav-pills .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .nav-pills .nav-link:hover {
+            color: var(--primary);
+        }
+        .nav-pills .nav-link.active { 
+            background: var(--primary);
+            box-shadow: 0 4px 10px rgba(155, 28, 28, 0.2);
+            color: white !important;
+        }
+
+        /* Cartes et Composants */
+        .card { 
+            border: 1px solid var(--border-soft); 
+            border-radius: 16px; 
+            box-shadow: 0 8px 20px -6px rgba(0,0,0,0.04); 
+            background: var(--surface);
+        }
+        
+        .btn-custom {
+            background-color: var(--text-muted);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+        .btn-custom:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        /* Gérer l'état de chargement du bouton proprement */
+        .btn-custom.disabled {
+            opacity: 1 !important;
+            background-color: var(--primary) !important;
+            color: var(--surface) !important;
+            box-shadow: none !important;
+            cursor: wait !important;
+            transform: translateY(0);
+        }
+
+        /* Drag & Drop */
+        .transaction-card { 
+            cursor: grab; 
+            border-left: 4px solid var(--primary); 
+            transition: all 0.2s ease; 
+            border-radius: 10px;
+            background: var(--surface);
+        }
+        .transaction-card:hover { 
+            transform: translateX(4px); 
+            border-color: var(--primary-dark);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05) !important;
+        }
+        .transaction-card:active { cursor: grabbing; }
+
+        .dropzone { 
+            min-height: 90px; 
+            border: 2px dashed #d6d3ce; 
+            border-radius: 12px; 
+            background: #f8f7f4; 
+            transition: all 0.3s ease; 
+        }
+        .dropzone.dragover { 
+            background-color: #fce8e8; 
+            border-color: var(--primary); 
+            transform: scale(1.02);
+        }
+
+        /* Progress bars & Inputs */
+        .progress { 
+            height: 8px; 
+            border-radius: 10px; 
+            background-color: var(--border-soft);
+        }
+        .progress-bar { background-color: var(--text-muted); }
+        .progress-bar.bg-danger { background-color: var(--primary) !important; }
+        .progress-bar.bg-success { background-color: var(--text-main) !important; }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--border-soft);
+            background-color: #f8f7f4;
+            padding: 10px 15px;
+        }
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(155, 28, 28, 0.1);
+            border-color: var(--primary);
+        }
+        .badge-count {
+            background-color: var(--surface);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        .nav-link.active .badge-count {
+            background-color: white;
+            color: var(--primary);
+        }
+
+        /* Ajout spécifique pour les conteneurs de graphiques */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Notification Éditoriale (Toast) */
+        .editorial-toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            min-width: 320px;
+            background-color: var(--surface);
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 12px 30px -8px rgba(0,0,0,0.08); 
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            animation: slideDownFade 4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            pointer-events: none;
+        }
+        .editorial-toast.success { border-left: 4px solid var(--success); }
+        .editorial-toast.danger { border-left: 4px solid var(--danger); }
+
+        @keyframes slideDownFade {
+            0% { opacity: 0; transform: translate(-50%, -20px); }
+            10% { opacity: 1; transform: translate(-50%, 0); }
+            90% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); visibility: hidden; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container mt-4 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-primary">BanqueMe</h2>
-        <a href="/lancer_parsing" class="btn btn-dark fw-bold px-4">🔄 Synchroniser Mails</a>
+<div class="mx-auto mt-5 mb-5" style="width: 85%; max-width: 1200px;">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="brand-title mb-0">BanqueMe</h2>
+            <span class="text-muted small fw-bold text-uppercase" data-i18n="subtitle" style="letter-spacing: 1px;">Pilotage Budget</span>
+        </div>
+        
+        <div class="d-flex align-items-center gap-3">
+            <div class="dropdown">
+                <button class="btn border fw-bold dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" style="background: var(--surface); color: var(--text-main); border-color: var(--border-soft); border-radius: 10px; padding: 8px 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-globe me-2" viewBox="0 0 16 16">
+                        <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m7.5-6.923c-.67.204-1.335.82-1.887 1.855A8 8 0 0 0 5.145 4H7.5zM4.09 4a9.3 9.3 0 0 1 .64-1.539 7 7 0 0 1 .597-.933A7.03 7.03 0 0 0 2.255 4zm-.582 3.5c.03-.877.138-1.718.312-2.5H1.674a7 7 0 0 0-.656 2.5zM4.847 5a12.5 12.5 0 0 0-.338 2.5H7.5V5zM8.5 5v2.5h2.99a12.5 12.5 0 0 0-.337-2.5zM4.51 8.5c.035.887.14 1.732.318 2.5H1.674a7 7 0 0 1-.656-2.5zM5.145 12c.138.386.295.744.468 1.068.552 1.035 1.218 1.65 1.887 1.855V12zm.182 2.472a7 7 0 0 1-.597-.933A9.3 9.3 0 0 1 4.09 12H2.255a7 7 0 0 0 3.072 2.472M3.82 11H1.674a7 7 0 0 0 .656 2.5c-.178-.782-.288-1.623-.318-2.5m6.853 3.472A7 7 0 0 0 13.745 12H11.91a9.3 9.3 0 0 1-.64 1.539 7 7 0 0 1-.597.933M8.5 12v2.923c.67-.204 1.335-.82 1.887-1.855.173-.324.33-.682.468-1.068zm3.68-1h2.146c.365-.767.594-1.61.656-2.5h-2.49a13.6 13.6 0 0 1-.312 2.5m2.802-3.5a7 7 0 0 0-.656-2.5H11.81a13.6 13.6 0 0 0 .312 2.5zM11.27 2.461c.247.464.462.98.64 1.539h1.835a7 7 0 0 0-3.072-2.472c.218.284.418.598.597.933M10.855 4a8 8 0 0 0-.468-1.068C9.835 1.897 9.17 1.282 8.5 1.077V4z"/>
+                    </svg>
+                    <span id="current-lang-display">FR</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 12px; min-width: 140px; background-color: var(--surface);">
+                    <li><a class="dropdown-item fw-medium small py-2" href="#" onclick="changeLanguage('fr')">🇫🇷 Français</a></li>
+                    <li><a class="dropdown-item fw-medium small py-2" href="#" onclick="changeLanguage('en')">🇬🇧 English</a></li>
+                    <li><a class="dropdown-item fw-medium small py-2" href="#" onclick="changeLanguage('es')">🇪🇸 Español</a></li>
+                    <li><a class="dropdown-item fw-medium small py-2" href="#" onclick="changeLanguage('it')">🇮🇹 Italiano</a></li>
+                    <li><a class="dropdown-item fw-medium small py-2" href="#" onclick="changeLanguage('ml')">🇮🇳 മലയാളം</a></li>
+                </ul>
+            </div>
+
+            <a href="/lancer_parsing" class="btn btn-custom fw-bold px-4 py-2" onclick="this.innerHTML='<span class=\'spinner-border spinner-border-sm me-2\'></span>Patientez...'; this.classList.add('disabled');">
+                <span data-i18n="btnSync">Mettre à jour les données</span>
+            </a>
+        </div>
     </div>
 
-    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm" id="pills-tab" role="tablist">
-        <li class="nav-item"><button class="nav-link active rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#tri">📥 Tri <span class="badge bg-danger ms-1">{{ a_classer|length }}</span></button></li>
-        <li class="nav-item"><button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#condense">📊 Synthèse</button></li>
-        <li class="nav-item"><button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#historique">📜 Historique</button></li>
-        <li class="nav-item"><button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#stats">📈 Analyses</button></li>
-        <li class="nav-item"><button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#manuel">✍️ Saisie</button></li>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div id="flash-container">
+                {% for category, message in messages %}
+                    <div class="editorial-toast {{ category }}">
+                        {% if category == 'success' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="var(--success)" class="bi bi-check2-circle flex-shrink-0" viewBox="0 0 16 16">
+                            <path d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z"/>
+                            <path d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z"/>
+                            </svg>
+                        {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="var(--danger)" class="bi bi-exclamation-circle flex-shrink-0" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                            </svg>
+                        {% endif %}
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color: var(--text-main); font-size: 0.95rem;">
+                                {{ 'Synchronisation terminée' if category == 'success' else 'Échec de la synchronisation' }}
+                            </h6>
+                            <p class="mb-0" style="color: var(--text-muted); font-size: 0.85rem;">{{ message }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <ul class="nav nav-pills mb-4 d-flex" id="pills-tab" role="tablist">
+        <li class="nav-item flex-fill text-center mx-1"><button class="nav-link active w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#tri"><span data-i18n="tabTri">Tri</span> <span class="badge badge-count ms-1 rounded-pill">{{ a_classer|length }}</span></button></li>
+        <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#condense"><span data-i18n="tabSynth">Synthèse</span></button></li>
+        <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#historique"><span data-i18n="tabHist">Historique</span></button></li>
+        <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#stats"><span data-i18n="tabAnalyses">Analyses</span></button></li>
+        <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#manuel"><span data-i18n="tabSaisie">Saisie</span></button></li>
+        <li class="nav-item flex-fill text-center mx-1">
+            <button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#gestion-cat">
+                <span data-i18n="tabManageCat">Gérer les Catégories</span>
+            </button>
+        </li>
     </ul>
 
-    <form class="row g-2 mb-4 p-3 bg-white rounded shadow-sm border-0" method="GET" action="/">
-        <div class="col-md-2"><input type="number" class="form-control" name="annee" value="{{ filtre_annee }}"></div>
+    <form class="row g-3 mb-4 p-3 border-bottom border-soft align-items-end" method="GET" action="/">
+        <div class="col-md-2">
+            <label class="form-label small fw-bold" style="color: var(--text-muted)" data-i18n="filterYear">Année</label>
+            <input type="number" class="form-control" name="annee" value="{{ filtre_annee }}">
+        </div>
         <div class="col-md-3">
+            <label class="form-label small fw-bold" style="color: var(--text-muted)" data-i18n="filterMonth">Mois</label>
             <select class="form-select" name="mois">
-                <option value="">Tous les mois</option>
+                <option value="" data-i18n="allMonths">Tous les mois</option>
                 {% for v, n in [('janv','Janvier'),('févr','Février'),('mars','Mars'),('avr','Avril'),('mai','Mai'),('juin','Juin'),('juil','Juillet'),('août','Août'),('sept','Septembre'),('oct','Octobre'),('nov','Novembre'),('déc','Décembre')] %}
                 <option value="{{ v }}" {{ 'selected' if filtre_mois == v else '' }}>{{ n }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-7"><button type="submit" class="btn btn-secondary w-100 fw-bold">Appliquer les filtres</button></div>
+        <div class="col-md-3">
+              <button type="submit" class="btn border w-100 fw-bold py-2" style="background: var(--border-soft); color: var(--text-main); border-color: var(--text-muted);" data-i18n="filterBtn">
+                Filtrer
+            </button>
+        </div>
     </form>
 
     <div class="tab-content" id="pills-tabContent">
+        
         <div class="tab-pane fade show active" id="tri">
-            <div class="row">
+            <div class="row g-4">
                 <div class="col-md-4">
-                    <h6 class="text-muted mb-3 text-uppercase">Virements non classés</h6>
+                    <h6 class="fw-bold mb-3 text-uppercase" style="color: var(--text-main); font-size: 0.8rem; letter-spacing: 0.5px;" data-i18n="toClassify">Virements non classés</h6>
                     {% for t in a_classer %}
-                    <div class="card mb-2 transaction-card shadow-sm" draggable="true" data-id="{{ t.id_transaction }}" ondragstart="dragStart(event)">
+                    <div class="card mb-2 transaction-card shadow-sm border-0" draggable="true" data-id="{{ t.id_transaction }}" ondragstart="dragStart(event)">
                         <div class="card-body p-3 d-flex justify-content-between align-items-center">
-                            <div><span class="fw-bold d-block small">{{ t.commentaire }}</span><small class="text-muted">{{ t.jour_mois }}</small></div>
-                            <span class="text-danger fw-bold">{{ t.montant }}€</span>
+                            <div>
+                                <span class="fw-bold d-block" style="color: var(--text-main); font-size: 0.9rem;">{{ t.commentaire }}</span>
+                                <small style="color: var(--text-muted);">{{ t.jour_mois }}</small>
+                            </div>
+                            <span class="fw-bold" style="color: var(--primary);">{{ t.montant }}€</span>
                         </div>
                     </div>
                     {% else %}
-                    <div class="alert alert-light text-center border-dashed">Aucun virement à classer 🎉</div>
+                    <div class="alert text-center py-5" style="background-color: transparent; border: 2px dashed var(--border-soft); border-radius: 16px;">
+                        <div class="fs-1 mb-2">🎉</div>
+                        <p class="mb-0 fw-bold text-muted" data-i18n="allClassified">Tout est classé.</p>
+                    </div>
                     {% endfor %}
                 </div>
                 <div class="col-md-8">
-                    <h6 class="text-muted mb-3 text-uppercase">Catégories</h6>
-                    <div class="row row-cols-3 g-2">
+                    <h6 class="fw-bold mb-3 text-uppercase" style="color: var(--text-main); font-size: 0.8rem; letter-spacing: 0.5px;" data-i18n="categoriesPlural">Catégories</h6>
+                    <div class="row row-cols-1 row-cols-md-3 g-3">
                         {% for cat in categories %}
                         <div class="col">
-                            <div class="card h-100 border-0 shadow-sm">
-                                <div class="card-header bg-white border-0 text-center fw-bold small">{{ cat.sous_categorie }}</div>
-                                <div class="card-body dropzone d-flex align-items-center justify-content-center" data-category="{{ cat.sous_categorie }}" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="drop(event)">
-                                    <span class="text-muted small">Déposer</span>
+                            <div class="card h-100">
+                                <div class="card-header bg-transparent border-0 text-center fw-bold pt-3 pb-0" style="color: var(--text-main);">
+                                    {{ cat.sous_categorie }}
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="dropzone d-flex align-items-center justify-content-center" data-category="{{ cat.sous_categorie }}" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="drop(event)">
+                                        <span class="small" style="color: var(--primary);" data-i18n="dropHere">Déposer</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -83,20 +321,28 @@
         </div>
 
         <div class="tab-pane fade" id="condense">
-            <div class="card p-4 shadow-sm">
-                <table class="table table-borderless align-middle">
-                    <thead><tr class="text-muted small"><th>CATÉGORIE</th><th class="text-center">ÉCART / OBJECTIF</th><th class="text-end">RÉEL / PRÉVU</th></tr></thead>
+            <div class="card p-4">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr style="color: var(--text-muted); font-size: 0.8rem; letter-spacing: 1px;">
+                            <th class="text-uppercase pb-3" data-i18n="categorySingular">Catégorie</th>
+                            <th class="text-center text-uppercase pb-3" data-i18n="progression">Progression</th>
+                            <th class="text-end text-uppercase pb-3" data-i18n="realVsPlanned">Réel / Prévu</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {% for r in comparaison %}
                         {% set pct = (r.montant_reel / r.montant_prevu * 100) if r.montant_prevu > 0 else 0 %}
-                        <tr class="border-bottom">
-                            <td class="py-3 fw-bold">{{ r.sous_categorie }}</td>
-                            <td class="py-3" style="width: 40%;">
-                                <div class="progress"><div class="progress-bar {{ 'bg-danger' if pct > 100 else 'bg-success' }}" style="width: {{ pct if pct <= 100 else 100 }}%"></div></div>
+                        <tr class="border-bottom" style="border-color: var(--border-soft) !important;">
+                            <td class="py-3 fw-bold" style="color: var(--text-main);">{{ r.sous_categorie }}</td>
+                            <td class="py-3" style="width: 45%;">
+                                <div class="progress shadow-sm">
+                                    <div class="progress-bar {{ 'bg-danger' if pct > 100 else 'bg-success' }}" style="width: {{ pct if pct <= 100 else 100 }}%"></div>
+                                </div>
                             </td>
-                            <td class="py-3 text-end fw-bold">
-                                <span class="{{ 'text-danger' if pct > 100 else 'text-dark' }}">{{ r.montant_reel|round(2) }} €</span>
-                                <small class="text-muted">/ {{ r.montant_prevu }} €</small>
+                            <td class="py-3 text-end">
+                                <span class="fw-bold {{ 'text-danger' if pct > 100 else '' }}" style="{{ 'color: var(--text-main);' if pct <= 100 }}">{{ r.montant_reel|round(2) }} €</span>
+                                <small style="color: var(--text-muted);">/ {{ r.montant_prevu }} €</small>
                             </td>
                         </tr>
                         {% endfor %}
@@ -106,54 +352,203 @@
         </div>
 
         <div class="tab-pane fade" id="historique">
-            <div class="card p-3">
-                <table class="table table-hover table-sm small">
-                    <thead class="table-light"><tr><th>Date</th><th>Catégorie</th><th>Libellé</th><th class="text-end">Montant</th></tr></thead>
-                    <tbody>
-                        {% for h in historique %}
-                        <tr><td>{{ h.jour_mois }} {{ h.annee }}</td><td><span class="badge bg-light text-dark">{{ h.sous_categorie }}</span></td><td>{{ h.commentaire }}</td><td class="text-end fw-bold">{{ h.montant }} €</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr style="color: var(--text-muted); font-size: 0.8rem; letter-spacing: 1px;">
+                                <th class="text-uppercase pb-3 border-0" data-i18n="date">Date</th>
+                                <th class="text-uppercase pb-3 border-0" data-i18n="categorySingular">Catégorie</th>
+                                <th class="text-uppercase pb-3 border-0" data-i18n="label">Libellé</th>
+                                <th class="text-end text-uppercase pb-3 border-0" data-i18n="amount">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in historique %}
+                            <tr class="border-bottom" style="border-color: var(--border-soft) !important;">
+                                <td class="py-3 text-muted fw-medium">{{ h.jour_mois }} {{ h.annee }}</td>
+                                <td class="py-3"><span class="badge" style="background-color: #fce8e8; color: var(--primary-dark);">{{ h.sous_categorie }}</span></td>
+                                <td class="py-3 text-dark fw-medium">{{ h.commentaire }}</td>
+                                <td class="py-3 text-end fw-bold text-dark">{{ h.montant }} €</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <div class="tab-pane fade" id="stats">
+            
+        <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card p-3 border-0 shadow-sm" style="border-left: 5px solid var(--primary) !important;">
+                        <span class="text-muted small fw-bold text-uppercase" style="font-family: Georgia, 'Times New Roman', Times, serif;" data-i18n="cumulExpenses">Dépenses Cumulées</span>
+                        <h3 class="fw-bold mt-2 mb-0" style="color: var(--text-main);">{{ total_reel }} €</h3> 
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card p-3 border-0 shadow-sm" style="border-left: 5px solid {{ 'var(--success)' if ecart >= 0 else 'var(--danger)' }} !important;">
+                        <span class="text-muted small fw-bold text-uppercase" style="font-family: Georgia, 'Times New Roman', Times, serif;" data-i18n="budgetDiff">Écart vs Budget</span>
+                        <h3 class="fw-bold mt-2 mb-0" style="color: {{ 'var(--success)' if ecart >= 0 else 'var(--danger)' }};">
+                            {{ "+" if ecart > 0 else "" }}{{ ecart }} €
+                        </h3>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card p-3 border-0 shadow-sm" style="border-left: 5px solid {{ tendance_color }} !important;">
+                        <span class="text-muted small fw-bold text-uppercase" style="font-family: Georgia, 'Times New Roman', Times, serif;" data-i18n="globalTrend">Tendance Globale</span>
+                        <h3 class="fw-bold mt-2 mb-0" style="color: {{ tendance_color }};" data-i18n="{{ tendance_key }}"></h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-5">
+                    <div class="card p-4 h-100 d-flex flex-column">
+                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);" data-i18n="expenseDist">Répartition des Dépenses</h6>
+                        <div class="chart-container d-flex align-items-center justify-content-center">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="card p-4 h-100">
+                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);" data-i18n="realVsPlannedDetails">Réel vs Prévu (Détails)</h6>
+                        <div class="chart-container">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row g-4">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <div class="card p-4 h-100">
-                        <h6 class="fw-bold mb-4 text-center">Répartition des Dépenses</h6>
-                        <canvas id="pieChart"></canvas>
+                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);" data-i18n="annualEvol">Évolution annuelle</h6>
+                        <div class="chart-container">
+                            <canvas id="lineChart"></canvas>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card p-4 h-100">
-                        <h6 class="fw-bold mb-4 text-center">Réel vs Prévu</h6>
-                        <canvas id="barChart"></canvas>
+                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);" data-i18n="budgetAdherence">Adhérence au Budget</h6>
+                        <div class="chart-container d-flex align-items-center justify-content-center">
+                            <canvas id="radarChart"></canvas>
+                        </div>
                     </div>
                 </div>
-                <div class="col-12 mt-4"><canvas id="lineChart"></canvas></div> </div>
             </div>
         </div>
 
         <div class="tab-pane fade" id="manuel">
-            <div class="card p-4 mx-auto shadow-sm" style="max-width: 500px;">
+            <div class="card p-5 mx-auto" style="max-width: 550px;">
+                <h4 class="fw-bold text-center mb-4 text-dark" data-i18n="manualEntry">Saisie manuelle</h4>
                 <form action="/ajouter_manuel" method="POST">
-                    <div class="mb-3"><label class="form-label small fw-bold">Catégorie</label><select name="categorie" class="form-select">{% for cat in categories %}<option>{{ cat.sous_categorie }}</option>{% endfor %}</select></div>
-                    <div class="mb-3"><label class="form-label small fw-bold">Montant (€)</label><input name="montant" class="form-control" placeholder="0.00"></div>
-                    <div class="row mb-3">
-                        <div class="col"><label class="form-label small fw-bold">Date</label><input name="jour_mois" class="form-control" placeholder="15-janv"></div>
-                        <div class="col"><label class="form-label small fw-bold">Année</label><input name="annee" class="form-control" value="2025"></div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted" data-i18n="categorySingular">Catégorie</label>
+                        <select name="categorie" class="form-select bg-light">
+                            {% for cat in categories %}<option>{{ cat.sous_categorie }}</option>{% endfor %}
+                        </select>
                     </div>
-                    <div class="mb-4"><label class="form-label small fw-bold">Description</label><input name="commentaire" class="form-control"></div>
-                    <button class="btn btn-primary w-100 fw-bold py-2">💾 Enregistrer</button>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted" data-i18n="amountEur">Montant (€)</label>
+                        <input name="montant" class="form-control bg-light" placeholder="0.00" type="number" step="0.01">
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col">
+                            <label class="form-label small fw-bold text-muted" data-i18n="dayMonth">Jour/Mois</label>
+                            <input name="jour_mois" class="form-control bg-light" placeholder="15-janv">
+                        </div>
+                        <div class="col">
+                            <label class="form-label small fw-bold text-muted" data-i18n="filterYear">Année</label>
+                            <input name="annee" class="form-control bg-light" value="2025" type="number">
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label small fw-bold text-muted" data-i18n="description">Description</label>
+                        <input name="commentaire" class="form-control bg-light" data-i18n-placeholder="onlinePurchase" placeholder="Achat en ligne...">
+                    </div>
+                    <button class="btn btn-custom w-100 fw-bold py-3 fs-6" data-i18n="saveTransaction">Enregistrer la transaction</button>
                 </form>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="gestion-cat">
+            <div class="row g-4">
+                
+                <div class="col-md-4">
+                    <div class="card p-4 h-100">
+                        <h6 class="fw-bold mb-4" style="color: var(--text-main);" data-i18n="addCategory">Ajouter une catégorie</h6>
+                        <form action="/ajouter_categorie" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted" data-i18n="catGroup">Groupe (ex: Voiture)</label>
+                                <input name="nom_categorie" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted" data-i18n="subCatName">Nom (ex: Essence)</label>
+                                <input name="sous_categorie" class="form-control" required>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col">
+                                    <label class="form-label small fw-bold text-muted" data-i18n="monthlyBudget">Budget mensuel (€)</label>
+                                    <input name="montant_prevu" type="number" step="0.01" class="form-control" value="0.00">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label small fw-bold text-muted" data-i18n="filterYear">Année</label>
+                                    <input name="annee" class="form-control" value="2025" type="number">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-custom w-100 fw-bold py-2" data-i18n="saveBtn">Enregistrer</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card p-4 h-100">
+                        <h6 class="fw-bold mb-4" style="color: var(--text-main);" data-i18n="existingCategories">Catégories existantes</h6>
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead style="position: sticky; top: 0; background: var(--surface); z-index: 1;">
+                                    <tr style="color: var(--text-muted); font-size: 0.8rem; letter-spacing: 1px;">
+                                        <th class="text-uppercase pb-2 border-0" data-i18n="catGroup">Groupe</th>
+                                        <th class="text-uppercase pb-2 border-0" data-i18n="subCatName">Nom</th>
+                                        <th class="text-uppercase pb-2 border-0 text-end" data-i18n="monthlyBudget">Budget/mois</th>
+                                        <th class="border-0"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in categories_completes %}
+                                    <tr class="border-bottom" style="border-color: var(--border-soft) !important;">
+                                        <td class="py-2 text-muted fw-medium">{{ c.nom_categorie }}</td>
+                                        <td class="py-2 fw-bold" style="color: var(--text-main);">{{ c.sous_categorie }}</td>
+                                        <td class="py-2 text-end text-muted">{{ c.prevu }} €</td>
+                                        <td class="py-2 text-end">
+                                            <form action="/supprimer_categorie/{{ c.id_categorie }}/{{ c.sous_categorie }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer cette catégorie ?');">
+                                                <button type="submit" class="btn btn-sm btn-light text-danger" style="border-radius: 8px;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                                        <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </div>
     </div>
 </div>
 
-
+<script src="{{ url_for('static', filename='js/translations.js') }}"></script>
 
 <script>
     // Persistance Onglets
@@ -163,57 +558,74 @@
     });
     document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(t => t.addEventListener('shown.bs.tab', e => localStorage.setItem('activeTab', e.target.dataset.bsTarget)));
 
-    // GRAPHIQUES
+    // Configurations Chart.js
+    Chart.defaults.font.family = 'system-ui, -apple-system, sans-serif';
+    Chart.defaults.color = '#78716c';
+    Chart.defaults.scale.grid.color = '#e7e5df';
+
     const labels = {{ labels|tojson }};
     const dataReel = {{ data_reel|tojson }};
     const dataPrevu = {{ data_prevu|tojson }};
+    const chartColors = ['#9b1c1c', '#2c3e50', '#b8860b', '#4b5320', '#6e4b3a', '#4a4a4a', '#5f9ea0', '#8b0000'];
 
     // 1. Pie Chart
     new Chart(document.getElementById('pieChart'), {
-        type: 'doughnut',
-        data: { labels: labels, datasets: [{ data: dataReel, backgroundColor: ['#1abc9c','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#34495e'] }] },
-        options: { cutout: '65%' }
+        type: 'pie',
+        data: { labels: labels, datasets: [{ data: dataReel, backgroundColor: chartColors, borderWidth: 2, borderColor: '#fdfcfb' }] },
+        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 10 } } } }
     });
 
-    // 2. Bar Chart (Réel vs Prévu)
+    // 2. Bar Chart
     new Chart(document.getElementById('barChart'), {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [
-                { label: 'Réel', data: dataReel, backgroundColor: '#2c3e50' },
-                { label: 'Prévu', data: dataPrevu, backgroundColor: '#bdc3c7' }
+                { label: 'Réel', data: dataReel, backgroundColor: '#9b1c1c', borderRadius: 4 },
+                { label: 'Prévu', data: dataPrevu, backgroundColor: '#d6d3ce', borderRadius: 4 }
             ]
         },
-        options: { indexAxis: 'y', plugins: { legend: { display: true } } }
+        options: { maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: true, position: 'top', labels: { usePointStyle: true } }, tooltip: { mode: 'index', intersect: false } }, scales: { x: { border: {display: false} }, y: { border: {display: false}, ticks: { autoSkip: false } } } }
     });
 
-    // 3. Graphique d'évolution (Ligne)
+    // 3. Line Chart
     new Chart(document.getElementById('lineChart'), {
         type: 'line',
         data: {
-            labels: ['Jan', 'Féb', 'Mar', 'Avr', 'Mai', 'Jui', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
-            datasets: [{
-                label: 'Dépenses mensuelles',
-                data: [1200, 1100, 1400, 900, 1000, 1100, 1500, 1300, 1200, 1100, 1250, 1600], // Exemple
-                borderColor: '#3498db',
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                fill: true,
-                tension: 0.3
-            }]
-        }
+            labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+            datasets: [{ label: 'Dépenses mensuelles', data: [1200, 1100, 1400, 900, 1000, 1100, 1500, 1300, 1200, 1100, 1250, 1600], borderColor: '#2c3e50', backgroundColor: 'rgba(44, 62, 80, 0.05)', borderWidth: 2, fill: true, tension: 0.4, pointBackgroundColor: '#fdfcfb', pointBorderColor: '#2c3e50', pointBorderWidth: 2, pointRadius: 4 }]
+        },
+        options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { border: {display: false} }, y: { border: {display: false} } } }
+    });
+
+    // 4. Radar Chart
+    new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Réel', data: dataReel, backgroundColor: 'rgba(155, 28, 28, 0.2)', borderColor: '#9b1c1c', pointBackgroundColor: '#9b1c1c' },
+                { label: 'Prévu', data: dataPrevu, backgroundColor: 'rgba(214, 211, 206, 0.4)', borderColor: '#d6d3ce', pointBackgroundColor: '#d6d3ce' }
+            ]
+        },
+        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } }, scales: { r: { angleLines: { color: '#e7e5df' }, grid: { color: '#e7e5df' }, pointLabels: { color: '#292524', font: { size: 10 } }, ticks: { display: false } } } }
     });
 
     // DRAG & DROP
-    function dragStart(e) { e.dataTransfer.setData("id", e.target.dataset.id); }
+    function dragStart(e) { e.dataTransfer.setData("id", e.target.dataset.id); e.target.style.opacity = '0.5'; }
+    document.addEventListener('dragend', (e) => { if(e.target.classList.contains('transaction-card')) e.target.style.opacity = '1'; });
     function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
     function dragLeave(e) { e.currentTarget.classList.remove('dragover'); }
     function drop(e) {
         e.preventDefault();
+        const dropzone = e.currentTarget;
+        dropzone.classList.remove('dragover');
+        dropzone.innerHTML = `<div class="spinner-border spinner-border-sm text-primary" role="status"></div>`;
+        
         fetch('/update_category', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({transaction_id: e.dataTransfer.getData("id"), new_category: e.currentTarget.dataset.category})
+            body: JSON.stringify({transaction_id: e.dataTransfer.getData("id"), new_category: dropzone.dataset.category})
         }).then(() => location.reload());
     }
 </script>
