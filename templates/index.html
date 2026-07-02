@@ -7,8 +7,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
@@ -101,19 +103,16 @@
         <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#historique"><span data-i18n="tabHist">Historique</span></button></li>
         <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#stats"><span data-i18n="tabAnalyses">Analyses</span></button></li>
         <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#manuel"><span data-i18n="tabSaisie">Saisie</span></button></li>
-        <li class="nav-item flex-fill text-center mx-1">
-            <button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#gestion-cat">
-                <span data-i18n="tabManageCat">Gérer les Catégories</span>
-            </button>
-        </li>
+        <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#planification">Planification</button></li>
+        <li class="nav-item flex-fill text-center mx-1"><button class="nav-link w-100 rounded-pill py-2" data-bs-toggle="pill" data-bs-target="#gestion-cat"><span data-i18n="tabManageCat">Gérer les Catégories</span></button></li>
     </ul>
 
-    <form class="row g-3 mb-4 p-3 border-bottom border-soft align-items-end" method="GET" action="/">
+   <form class="row g-3 mb-4 p-3 border-bottom border-soft align-items-end" method="GET" action="/">
         <div class="col-md-2">
             <label class="form-label small fw-bold" style="color: var(--text-muted)" data-i18n="filterYear">Année</label>
             <input type="number" class="form-control" name="annee" value="{{ filtre_annee }}">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label small fw-bold" style="color: var(--text-muted)" data-i18n="filterMonth">Mois</label>
             <select class="form-select" name="mois">
                 <option value="" data-i18n="allMonths">Tous les mois</option>
@@ -123,7 +122,25 @@
             </select>
         </div>
         <div class="col-md-3">
-              <button type="submit" class="btn border w-100 fw-bold py-2" style="background: var(--border-soft); color: var(--text-main); border-color: var(--text-muted);" data-i18n="filterBtn">
+            <label class="form-label small fw-bold" style="color: var(--text-muted)" data-i18n="catGroup">Groupe</label>
+            <select class="form-select" name="groupe">
+                <option value="">Tous les groupes</option>
+                {% for g in groupes %}
+                <option value="{{ g.nom_categorie }}" {{ 'selected' if filtre_groupe == g.nom_categorie else '' }}>{{ g.nom_categorie }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold" style="color: var(--text-muted)" data-i18n="categorySingular">Catégorie</label>
+            <select class="form-select" name="categorie">
+                <option value="">Toutes les catégories</option>
+                {% for c in categories %}
+                <option value="{{ c.sous_categorie }}" {{ 'selected' if filtre_cat == c.sous_categorie else '' }}>{{ c.sous_categorie }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn border w-100 fw-bold py-2" style="background: var(--border-soft); color: var(--text-main); border-color: var(--text-muted);" data-i18n="filterBtn">
                 Filtrer
             </button>
         </div>
@@ -208,23 +225,93 @@
         <div class="tab-pane fade" id="historique">
             <div class="card p-4">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+       <table class="table table-hover align-middle mb-0">
                         <thead>
                             <tr style="color: var(--text-muted); font-size: 0.8rem; letter-spacing: 1px;">
-                                <th class="text-uppercase pb-3 border-0" data-i18n="date">Date</th>
-                                <th class="text-uppercase pb-3 border-0" data-i18n="categorySingular">Catégorie</th>
-                                <th class="text-uppercase pb-3 border-0" data-i18n="label">Libellé</th>
-                                <th class="text-end text-uppercase pb-3 border-0" data-i18n="amount">Montant</th>
+                                <th class="text-uppercase pb-3 border-0 sortable" data-i18n="date">Date</th>
+                                <th class="text-uppercase pb-3 border-0 sortable" data-i18n="catGroup">Groupe</th>
+                                <th class="text-uppercase pb-3 border-0 sortable" data-i18n="categorySingular">Catégorie</th>
+                                <th class="text-uppercase pb-3 border-0 sortable" data-i18n="label">Libellé</th>
+                                <th class="text-end text-uppercase pb-3 border-0 sortable" data-i18n="amount">Montant</th>
+                                <th class="text-end pb-3 border-0">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for h in historique %}
                             <tr class="border-bottom" style="border-color: var(--border-soft) !important;">
-                                <td class="py-3 text-muted fw-medium">{{ h.jour_mois }} {{ h.annee }}</td>
+                              <td class="py-3 text-muted fw-medium">{{ h.jour_mois }} {{ h.annee }}</td>
+                                <td class="py-3 text-muted">{{ h.nom_categorie }}</td>
                                 <td class="py-3"><span class="badge" style="background-color: #fce8e8; color: var(--primary-dark);">{{ h.sous_categorie }}</span></td>
                                 <td class="py-3 text-dark fw-medium">{{ h.commentaire }}</td>
-                                <td class="py-3 text-end fw-bold text-dark">{{ h.montant }} €</td>
+                                <td class="py-3 text-end fw-bold text-dark" data-sort="{{ h.montant }}">{{ h.montant }} €</td>
+                                <td class="py-3 text-end">
+                                    <button type="button" class="btn btn-sm btn-light border" data-bs-toggle="modal" data-bs-target="#editModal{{ h.id_transaction }}" style="border-radius: 8px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                          <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                          <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                                        </svg>
+                                    </button>
+                                </td>
                             </tr>
+
+                          <div class="modal fade" id="editModal{{ h.id_transaction }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content" style="background: var(--surface); border-radius: 16px;">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="fw-bold text-dark">Modifier la transaction</h5>
+                                            <button type="button" class="btn-close" data-bs-shadow="none" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        
+                                        <div class="modal-body">
+                                            <form id="editTransForm{{ h.id_transaction }}" action="/modifier_transaction" method="POST">
+                                                <input type="hidden" name="id_transaction" value="{{ h.id_transaction }}">
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted">Catégorie</label>
+                                                    <select name="sous_categorie" class="form-select">
+                                                        {% for cat in categories %}
+                                                        <option value="{{ cat.sous_categorie }}" {{ 'selected' if cat.sous_categorie == h.sous_categorie else '' }}>{{ cat.sous_categorie }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted">Libellé / Commentaire</label>
+                                                    <input type="text" name="commentaire" class="form-control" value="{{ h.commentaire or '' }}" required>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted">Montant (€)</label>
+                                                    <input type="number" step="0.01" name="montant" class="form-control" value="{{ h.montant }}" required>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col mb-3">
+                                                        <label class="form-label small fw-bold text-muted">Jour/Mois</label>
+                                                        <input type="text" name="jour_mois" class="form-control" value="{{ h.jour_mois or '' }}">
+                                                    </div>
+                                                    <div class="col mb-3">
+                                                        <label class="form-label small fw-bold text-muted">Année</label>
+                                                        <input type="number" name="annee" class="form-control" value="{{ h.annee }}" required>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        
+                                        <div class="modal-footer border-0 pt-0 d-flex justify-content-between">
+                                            <form action="/supprimer_transaction" method="POST" onsubmit="return confirm('Voulez-vous vraiment supprimer définitivement cette transaction ?');">
+                                                <input type="hidden" name="id_transaction" value="{{ h.id_transaction }}">
+                                                <button type="submit" class="btn btn-outline-danger fw-bold" style="border-radius: 8px;">Supprimer</button>
+                                            </form>
+                                            
+                                            <div>
+                                                <button type="button" class="btn btn-light border" data-bs-dismiss="modal" style="border-radius: 8px;">Annuler</button>
+                                                <button type="submit" form="editTransForm{{ h.id_transaction }}" class="btn btn-custom fw-bold" style="border-radius: 8px;">Enregistrer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -233,45 +320,55 @@
         </div>
 
         <div class="tab-pane fade" id="stats">
-            
-        <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <div class="card p-3 border-0 shadow-sm" style="border-left: 5px solid var(--primary) !important;">
-                        <span class="text-muted small fw-bold text-uppercase" style="font-family: Georgia, 'Times New Roman', Times, serif;" data-i18n="cumulExpenses">Dépenses Cumulées</span>
-                        <h3 class="fw-bold mt-2 mb-0" style="color: var(--text-main);">{{ total_reel }} €</h3> 
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card p-3 border-0 shadow-sm" style="border-left: 5px solid #2e7d32 !important;">
+                        <span class="text-muted small fw-bold text-uppercase">Rentrées (Réel)</span>
+                        <h4 class="fw-bold mt-2 mb-0" style="color: #2e7d32;" id="kpi-revenus-reel">{{ total_revenus_reel }} €</h4>
+                        <small class="text-muted mt-1" id="kpi-revenus-prevu">Prévu : {{ total_revenus_prevu }} €</small>
                     </div>
                 </div>
                 
-                <div class="col-md-4">
-                    <div class="card p-3 border-0 shadow-sm" style="border-left: 5px solid {{ 'var(--success)' if ecart >= 0 else 'var(--danger)' }} !important;">
-                        <span class="text-muted small fw-bold text-uppercase" style="font-family: Georgia, 'Times New Roman', Times, serif;" data-i18n="budgetDiff">Écart vs Budget</span>
-                        <h3 class="fw-bold mt-2 mb-0" style="color: {{ 'var(--success)' if ecart >= 0 else 'var(--danger)' }};">
-                            {{ "+" if ecart > 0 else "" }}{{ ecart }} €
-                        </h3>
+                <div class="col-md-3">
+                    <div class="card p-3 border-0 shadow-sm" style="border-left: 5px solid #c62828 !important;">
+                        <span class="text-muted small fw-bold text-uppercase">Sorties (Réel)</span>
+                        <h4 class="fw-bold mt-2 mb-0" style="color: #c62828;" id="kpi-depenses-reel">{{ total_depenses_reel }} €</h4>
+                        <small class="text-muted mt-1" id="kpi-depenses-prevu">Prévu : {{ total_depenses_prevu }} €</small>
                     </div>
                 </div>
                 
-                <div class="col-md-4">
-                    <div class="card p-3 border-0 shadow-sm" style="border-left: 5px solid {{ tendance_color }} !important;">
-                        <span class="text-muted small fw-bold text-uppercase" style="font-family: Georgia, 'Times New Roman', Times, serif;" data-i18n="globalTrend">Tendance Globale</span>
-                        <h3 class="fw-bold mt-2 mb-0" style="color: {{ tendance_color }};" data-i18n="{{ tendance_key }}"></h3>
+                <div class="col-md-3">
+                    <div class="card p-3 border-0 shadow-sm" style="background: var(--surface); border-left: 5px solid #1565c0 !important;">
+                        <span class="text-muted small fw-bold text-uppercase">Reste à vivre réel</span>
+                        <h4 class="fw-bold mt-2 mb-0" style="color: #1565c0;" id="kpi-reste-reel">{{ reste_reel }} €</h4>
+                        <small class="text-muted mt-1" id="kpi-reste-prevu">Prévu : {{ reste_prevu }} €</small>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card p-3 border-0 shadow-sm" id="kpi-card-bilan" style="border-left: 5px solid {{ perf_color }} !important;">
+                        <span class="text-muted small fw-bold text-uppercase">Bilan vs Budget</span>
+                        <h4 class="fw-bold mt-2 mb-0" style="color: {{ perf_color }};" id="kpi-bilan">
+                            {{ "+" if performance_epargne > 0 else "" }}{{ performance_epargne }} €
+                        </h4>
+                        <small class="text-muted mt-1" style="font-size: 0.7rem;" id="kpi-bilan-text">{{ perf_text }}</small>
                     </div>
                 </div>
             </div>
-
+            
             <div class="row g-4 mb-4">
                 <div class="col-md-5">
                     <div class="card p-4 h-100 d-flex flex-column">
-                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);" data-i18n="expenseDist">Répartition des Dépenses</h6>
-                        <div class="chart-container d-flex align-items-center justify-content-center">
+                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);">Répartition des Dépenses</h6>
+                        <div class="chart-container flex-grow-1 d-flex align-items-center justify-content-center" style="position: relative; min-height: 450px;">
                             <canvas id="pieChart"></canvas>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-7">
-                    <div class="card p-4 h-100">
-                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);" data-i18n="realVsPlannedDetails">Réel vs Prévu (Détails)</h6>
-                        <div class="chart-container">
+                    <div class="card p-4 h-100 d-flex flex-column">
+                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);">Dépenses : Réel vs Prévu</h6>
+                        <div class="chart-container flex-grow-1" style="position: relative; min-height: 450px;">
                             <canvas id="barChart"></canvas>
                         </div>
                     </div>
@@ -279,24 +376,24 @@
             </div>
 
             <div class="row g-4">
-                <div class="col-md-8">
+                <div class="col-md-7">
                     <div class="card p-4 h-100">
-                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);" data-i18n="annualEvol">Évolution annuelle</h6>
-                        <div class="chart-container">
+                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);">Évolution annuelle</h6>
+                        <div class="chart-container" style="position: relative; min-height: 300px;">
                             <canvas id="lineChart"></canvas>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card p-4 h-100">
-                        <h6 class="fw-bold mb-4 text-center" style="color: var(--text-main);" data-i18n="budgetAdherence">Adhérence au Budget</h6>
-                        <div class="chart-container d-flex align-items-center justify-content-center">
-                            <canvas id="radarChart"></canvas>
+                <div class="col-md-5">
+                    <div class="card p-4 h-100 d-flex flex-column">
+                        <h6 class="fw-bold mb-4 text-center" style="color: #2e7d32;">Revenus : Réel vs Prévu</h6>
+                        <div class="chart-container flex-grow-1" style="position: relative; min-height: 300px;">
+                            <canvas id="barChartRevenus"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </div> 
 
         <div class="tab-pane fade" id="manuel">
             <div class="card p-5 mx-auto" style="max-width: 550px;">
@@ -314,20 +411,147 @@
                     </div>
                     <div class="row mb-4">
                         <div class="col">
-                            <label class="form-label small fw-bold text-muted" data-i18n="dayMonth">Jour/Mois</label>
-                            <input name="jour_mois" class="form-control bg-light" placeholder="15-janv">
+                            <label class="form-label small fw-bold text-muted" data-i18n="dayMonth">Date</label>
+                            <input name="jour_mois" id="datePicker" class="form-control bg-light" type="text" placeholder="Choisir une date..." required>
                         </div>
                         <div class="col">
                             <label class="form-label small fw-bold text-muted" data-i18n="filterYear">Année</label>
-                            <input name="annee" class="form-control bg-light" value="2025" type="number">
+                            <input name="annee" class="form-control bg-light" type="number" value="{{ filtre_annee }}" required>
                         </div>
                     </div>
                     <div class="mb-5">
                         <label class="form-label small fw-bold text-muted" data-i18n="description">Description</label>
                         <input name="commentaire" class="form-control bg-light" data-i18n-placeholder="onlinePurchase" placeholder="Achat en ligne...">
                     </div>
-                    <button class="btn btn-custom w-100 fw-bold py-3 fs-6" data-i18n="saveTransaction">Enregistrer la transaction</button>
+                    <button type="submit" class="btn btn-custom w-100 fw-bold py-3 fs-6" data-i18n="saveTransaction">Enregistrer la transaction</button>
                 </form>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="planification">
+            <div class="card p-4">
+               <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="fw-bold mb-0" style="color: var(--text-main);">Budget prévisionnel (Année {{ filtre_annee }})</h6>
+                    
+                    {% if annees_dispo|length > 0 %}
+                    <button type="button" class="btn border btn-sm fw-bold d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#copyBudgetModal" style="background: var(--surface); color: var(--text-main); border-color: var(--border-soft);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-copy me-2" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
+                        </svg>
+                        Copier une année
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div class="modal fade" id="copyBudgetModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content" style="background: var(--surface); border-radius: 16px;">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="fw-bold text-dark">Dupliquer une planification</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="/copier_budget" method="POST">
+                                <div class="modal-body text-start">
+                                    <input type="hidden" name="annee_cible" value="{{ filtre_annee }}">
+                                    
+                                    <p class="small text-muted mb-3">
+                                        Sélectionnez l'année depuis laquelle vous souhaitez importer les données. 
+                                        Cela écrasera la planification actuelle de l'année <strong>{{ filtre_annee }}</strong>.
+                                    </p>
+                                    
+                                    <label class="form-label small fw-bold text-muted">Année source</label>
+                                    <select name="annee_source" class="form-select" required>
+                                        <option value="">Choisir une année...</option>
+                                        {% for a in annees_dispo %}
+                                            {% if a != filtre_annee|int %}
+                                            <option value="{{ a }}">{{ a }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="modal-footer border-0 pt-0">
+                                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="submit" class="btn btn-custom fw-bold">Importer les montants</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr style="color: var(--text-muted); font-size: 0.8rem; letter-spacing: 1px;">
+                                <th class="text-uppercase pb-2 border-0">Groupe</th>
+                                <th class="text-uppercase pb-2 border-0">Catégorie</th>
+                                <th class="text-uppercase pb-2 border-0 text-end">Budget Défaut / mois</th>
+                                <th class="text-uppercase pb-2 border-0 text-end">Exceptions</th>
+                                <th class="border-0"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in categories_completes %}
+                            {% set exceptions = exceptions_dict.get(c.sous_categorie, {}) %}
+                            <tr class="border-bottom" style="border-color: var(--border-soft) !important;">
+                                <td class="py-2 text-muted fw-medium">{{ c.nom_categorie }}</td>
+                                <td class="py-2 fw-bold" style="color: var(--text-main);">{{ c.sous_categorie }}</td>
+                                <td class="py-2 text-end text-muted">{{ c.prevu }} €</td>
+                                <td class="py-2 text-end text-muted">
+                                    {% if exceptions %}
+                                        <span class="badge bg-warning text-dark">{{ exceptions|length }} mois modifié(s)</span>
+                                    {% else %}
+                                        <span class="small">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2 text-end">
+                                    <button type="button" class="btn btn-sm btn-custom" data-bs-toggle="modal" data-bs-target="#planifModal{{ c.id_categorie }}" style="border-radius: 8px;">
+                                        Planifier
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="planifModal{{ c.id_categorie }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content" style="background: var(--surface); border-radius: 16px;">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="fw-bold text-dark">Planification : {{ c.sous_categorie }} ({{ filtre_annee }})</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="/sauvegarder_planification" method="POST">
+                                            <div class="modal-body text-start">
+                                                <input type="hidden" name="sous_categorie" value="{{ c.sous_categorie }}">
+                                                <input type="hidden" name="annee" value="{{ filtre_annee }}">
+                                                
+                                                <div class="p-3 mb-4 rounded" style="background: var(--border-soft);">
+                                                    <label class="form-label fw-bold text-dark mb-1">Budget par défaut (Appliqué à tous les mois)</label>
+                                                    <div class="input-group">
+                                                        <input type="number" step="0.01" name="montant_defaut" class="form-control" value="{{ c.prevu }}" required>
+                                                        <span class="input-group-text">€</span>
+                                                    </div>
+                                                </div>
+
+                                                <h6 class="fw-bold text-muted mb-3">Exceptions mensuelles (Laissez vide pour utiliser le défaut)</h6>
+                                                <div class="row g-3">
+                                                    {% set mois_list = [('janv','Janvier'),('févr','Février'),('mars','Mars'),('avr','Avril'),('mai','Mai'),('juin','Juin'),('juil','Juillet'),('août','Août'),('sept','Septembre'),('oct','Octobre'),('nov','Novembre'),('déc','Décembre')] %}
+                                                    {% for m_val, m_nom in mois_list %}
+                                                    <div class="col-md-3 col-6">
+                                                        <label class="form-label small fw-bold text-muted">{{ m_nom }}</label>
+                                                        <input type="number" step="0.01" name="exc_{{ m_val }}" class="form-control form-control-sm" value="{{ exceptions.get(m_val, '') }}" placeholder="Défaut">
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 pt-0">
+                                                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-custom fw-bold">Enregistrer le budget</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -339,23 +563,22 @@
                         <h6 class="fw-bold mb-4" style="color: var(--text-main);" data-i18n="addCategory">Ajouter une catégorie</h6>
                         <form action="/ajouter_categorie" method="POST">
                             <div class="mb-3">
-                                <label class="form-label small fw-bold text-muted" data-i18n="catGroup">Groupe (ex: Voiture)</label>
+                                <label class="form-label small fw-bold text-muted" data-i18n="catGroup">Groupe</label>
                                 <input name="nom_categorie" class="form-control" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label small fw-bold text-muted" data-i18n="subCatName">Nom (ex: Essence)</label>
+                                <label class="form-label small fw-bold text-muted" data-i18n="subCatName">Nom</label>
                                 <input name="sous_categorie" class="form-control" required>
                             </div>
-                            <div class="row mb-4">
-                                <div class="col">
-                                    <label class="form-label small fw-bold text-muted" data-i18n="monthlyBudget">Budget mensuel (€)</label>
-                                    <input name="montant_prevu" type="number" step="0.01" class="form-control" value="0.00">
-                                </div>
-                                <div class="col">
-                                    <label class="form-label small fw-bold text-muted" data-i18n="filterYear">Année</label>
-                                    <input name="annee" class="form-control" value="2025" type="number">
-                                </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Type de flux</label>
+                                <select name="sens" class="form-select" required>
+                                    <option value="DEPENSE">Dépense (Sortie d'argent)</option>
+                                    <option value="REVENU">Revenu (Entrée d'argent)</option>
+                                </select>
                             </div>
+
                             <button type="submit" class="btn btn-custom w-100 fw-bold py-2" data-i18n="saveBtn">Enregistrer</button>
                         </form>
                     </div>
@@ -370,7 +593,7 @@
                                     <tr style="color: var(--text-muted); font-size: 0.8rem; letter-spacing: 1px;">
                                         <th class="text-uppercase pb-2 border-0" data-i18n="catGroup">Groupe</th>
                                         <th class="text-uppercase pb-2 border-0" data-i18n="subCatName">Nom</th>
-                                        <th class="text-uppercase pb-2 border-0 text-end" data-i18n="monthlyBudget">Budget/mois</th>
+                                        <th class="text-uppercase pb-2 border-0">Type</th>
                                         <th class="border-0"></th>
                                     </tr>
                                 </thead>
@@ -379,17 +602,70 @@
                                     <tr class="border-bottom" style="border-color: var(--border-soft) !important;">
                                         <td class="py-2 text-muted fw-medium">{{ c.nom_categorie }}</td>
                                         <td class="py-2 fw-bold" style="color: var(--text-main);">{{ c.sous_categorie }}</td>
-                                        <td class="py-2 text-end text-muted">{{ c.prevu }} €</td>
+                                        
+                                        <td class="py-2">
+                                            {% if c.sens == 'REVENU' %}
+                                                <span class="badge" style="background-color: #e8f5e9; color: #1b5e20;">Revenu</span>
+                                            {% else %}
+                                                <span class="badge" style="background-color: #fce8e8; color: var(--danger);">Dépense</span>
+                                            {% endif %}
+                                        </td>
+
                                         <td class="py-2 text-end">
-                                            <form action="/supprimer_categorie/{{ c.id_categorie }}/{{ c.sous_categorie }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer cette catégorie ?');">
-                                                <button type="submit" class="btn btn-sm btn-light text-danger" style="border-radius: 8px;">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-                                                        <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
-                                                    </svg>
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-sm btn-light border" data-bs-toggle="modal" data-bs-target="#editCatModal{{ c.id_categorie }}" style="border-radius: 8px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                                  <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                                                </svg>
+                                            </button>
                                         </td>
                                     </tr>
+
+                                    <div class="modal fade" id="editCatModal{{ c.id_categorie }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content" style="background: var(--surface); border-radius: 16px;">
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="fw-bold text-dark">Gérer la catégorie</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                
+                                                <div class="modal-body text-start">
+                                                    <form id="editForm{{ c.id_categorie }}" action="/modifier_categorie" method="POST">
+                                                        <input type="hidden" name="id_categorie" value="{{ c.id_categorie }}">
+                                                        <input type="hidden" name="ancien_sous_categorie" value="{{ c.sous_categorie }}">
+                                                        
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold text-muted">Groupe (ex: Voiture)</label>
+                                                            <input type="text" name="nom_categorie" class="form-control" value="{{ c.nom_categorie }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold text-muted">Nom / Sous-catégorie (ex: Essence)</label>
+                                                            <input type="text" name="sous_categorie" class="form-control" value="{{ c.sous_categorie }}" required>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold text-muted">Type de flux</label>
+                                                            <select name="sens" class="form-select" required>
+                                                                <option value="DEPENSE" {{ 'selected' if c.sens == 'DEPENSE' else '' }}>Dépense (Sortie d'argent)</option>
+                                                                <option value="REVENU" {{ 'selected' if c.sens == 'REVENU' else '' }}>Revenu (Entrée d'argent)</option>
+                                                            </select>
+                                                        </div>
+
+                                                    </form>
+                                                </div>
+                                                
+                                                <div class="modal-footer border-0 pt-0 d-flex justify-content-between">
+                                                    <form action="/supprimer_categorie/{{ c.id_categorie }}/{{ c.sous_categorie }}" method="POST" onsubmit="return confirm('Voulez-vous vraiment supprimer cette catégorie ?');">
+                                                        <button type="submit" class="btn btn-outline-danger fw-bold" style="border-radius: 8px;">Supprimer</button>
+                                                    </form>
+                                                    
+                                                    <div>
+                                                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal" style="border-radius: 8px;">Annuler</button>
+                                                        <button type="submit" form="editForm{{ c.id_categorie }}" class="btn btn-custom fw-bold" style="border-radius: 8px;">Enregistrer</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -405,11 +681,41 @@
 <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
 
 <script>
+    // Variables Dépenses
     window.chartLabels = {{ labels|tojson }};
     window.chartDataReel = {{ data_reel|tojson }};
     window.chartDataPrevu = {{ data_prevu|tojson }};
+    
+    // Variables Revenus
+    window.chartLabelsRevenus = {{ labels_revenus|tojson }};
+    window.chartDataReelRevenus = {{ data_reel_revenus|tojson }};
+    window.chartDataPrevuRevenus = {{ data_prevu_revenus|tojson }};
+    
+    // Variables Évolution (Lignes)
+    window.dataEvolution = {{ depenses_par_mois|tojson }};
+    window.dataRevenusEvolution = {{ revenus_par_mois|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<script>
+    function injectFiltersIntoForms() {
+        const urlParams = new URLSearchParams(window.location.search);
+        document.querySelectorAll('form:not([action="/"])').forEach(form => {
+            ['annee', 'mois', 'groupe', 'categorie'].forEach(param => {
+                if(urlParams.has(param)) {
+                    if(!form.querySelector(`input[name="${param}_persist"]`)) {
+                        let input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = `${param}_persist`;
+                        input.value = urlParams.get(param);
+                        form.appendChild(input);
+                    }
+                }
+            });
+        });
+    }
+    document.addEventListener('DOMContentLoaded', injectFiltersIntoForms);
 </script>
 
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

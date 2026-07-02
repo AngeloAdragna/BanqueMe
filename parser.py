@@ -21,9 +21,19 @@ status, messages = mail.search(None, 'ALL')
 messages = messages[0].split()
 print(f"{len(messages)} mails trouvés dans le label 'banque'")
 
-# --- Regex libellé/date/montant ---
+# --- Regex ultra-tolérante avec groupes nommés ---
+# Gère les espaces des milliers, les signes +/-, et les inversions d'affichage HTML
 pattern = re.compile(
-    r'(.+?)\s*(\d{1,2} [a-zéû]+ \d{4})\s*([+-]?\d+[,.]\d{2})\s?€',
+    r'(?P<libelle>[^.\n]{3,60}?)\s+'
+    r'(?P<date>\d{1,2}(?:er)?\s+[a-zA-Zà-ÿÀ-Ÿû]+\s+\d{4})\s+'
+    r'(?P<montant>[+-]?[\d\s\xa0]+[,.]\d{2})\s?€',
+    re.IGNORECASE
+)
+# Cas alternatif si la banque place le montant avant la date dans le code HTML
+pattern_alt = re.compile(
+    r'(?P<libelle>[^.\n]{3,60}?)\s+'
+    r'(?P<montant>[+-]?[\d\s\xa0]+[,.]\d{2})\s?€\s+'
+    r'(?P<date>\d{1,2}(?:er)?\s+[a-zA-Zà-ÿÀ-Ÿû]+\s+\d{4})',
     re.IGNORECASE
 )
 
@@ -40,7 +50,8 @@ def get_body(msg):
             text = payload.decode(charset, errors="ignore")
             if part.get_content_type() == "text/html":
                 soup = BeautifulSoup(text, "html.parser")
-                text = soup.get_text()
+                # SECRET DE PARSING : Forcer un saut de ligne entre les balises pour éviter que les mots se collent
+                text = soup.get_text(separator='\n', strip=True)
             body += text + "\n"
         except: continue
     return body.strip()
@@ -70,45 +81,47 @@ if messages:
         if len(data[i]) < 2: continue
         msg = email.message_from_bytes(data[i][1])
         subject = get_subject(msg)
-
-        if "Opération liée à l'alerte" not in subject:
-            continue
-
         body = get_body(msg)
-        match = pattern.search(body)
+
+        # SECURITE : On vérifie l'existence du mot-clé dans l'objet OU dans le corps du mail
+        if "alerte" not in subject.lower() and "Opération liée à l'alerte" not in body:
+            continue
+        
+        # On tente l'extraction dans les deux sens de lecture possibles
+        match = pattern.search(body) or pattern_alt.search(body)
         
         if match:
-            libelle = match.group(1).strip()
-            date_str = match.group(2)
-            montant = float(match.group(3).replace(',', '.'))
+            libelle = match.group('libelle').strip()
+            date_str = match.group('date')
+            
+            # Nettoyage robuste du montant (suppression des espaces des milliers et insécables)
+            montant_str = match.group('montant').replace(' ', '').replace('\xa0', '').replace(',', '.')
+            montant = float(montant_str)
             
             # RÉCUPÉRATION DU MESSAGE-ID UNIQUE
             msg_id = msg.get("Message-ID")
             
             try:
-                parts = date_str.split()
+                date_clean = date_str.replace('er ', ' ')
+                parts = date_clean.split()
                 jour_mois = f"{parts[0]}-{parts[1][:4]}"
                 annee = int(parts[2])
             except:
                 jour_mois = date_str
                 annee = datetime.now().year
 
-            # On ajoute le msg_id à la fin du tuple
-            transactions_a_inserer.append(('A classer', montant, jour_mois, annee, libelle, msg_id))
+            transactions_a_inserer.append(('À classer', montant, jour_mois, annee, libelle, msg_id))
 
 # --- Insertion sécurisée dans la DB ---
 if transactions_a_inserer:
-    # L'utilisation de INSERT OR IGNORE est la clé : 
-    # Si le msg_id existe déjà, SQLite passe à la ligne suivante sans faire d'erreur
     cursor.executemany('''
         INSERT OR IGNORE INTO detaillee (sous_categorie, montant, jour_mois, annee, commentaire, id_message) 
         VALUES (?, ?, ?, ?, ?, ?)
     ''', transactions_a_inserer)
     
     conn.commit()
-    # rowcount permet de savoir combien de lignes ont RÉELLEMENT été ajoutées (en ignorant les doublons)
     print(f" {cursor.rowcount} NOUVELLES transactions insérées dans banqueMe.db !")
 else:
-    print(" Aucune transaction trouvée.")
+    print(" Aucune nouvelle transaction trouvée.")
 
 conn.close()
